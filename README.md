@@ -8,7 +8,7 @@ Instantiate a new OAuth Client:
 
 ```dart
 // myclient.dart
-import 'package:oauth_dio/oauth.dart';
+import 'package:oauth_dio/oauth_dio.dart';
 
 final oauth = OAuth(
       tokenUrl: '<YOUR TOKEN URL>',
@@ -46,7 +46,7 @@ In this example we will use the [flutter_secure_storage](https://pub.dev/package
 
 ```dart
 // myclient.dart
-import 'package:oauth_dio/oauth.dart';
+import 'package:oauth_dio/oauth_dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 

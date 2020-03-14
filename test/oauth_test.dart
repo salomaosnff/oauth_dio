@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oauth_dio/oauth.dart';
+import 'package:oauth_dio/oauth_dio.dart';
 
 void main() {
   final oauth = OAuth();
