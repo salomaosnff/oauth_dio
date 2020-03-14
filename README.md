@@ -1,6 +1,6 @@
 # oauth_dio
 
-An OAuth client who works with [dio](https://pub.dev/packages/dio).
+A customizable oauth client with token storage and interceptors for [dio](https://pub.dev/packages/dio).
 
 ## Getting Started
 

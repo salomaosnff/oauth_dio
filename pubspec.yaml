@@ -1,6 +1,6 @@
 name: oauth_dio
-description: A new Flutter package project.
-version: 0.0.1
+description: A customizable oauth client with token storage and interceptors for dio
+version: 0.0.2
 homepage: https://github.com/salomaosnff/oauth_dio
 
 environment:

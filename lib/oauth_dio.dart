@@ -94,10 +94,7 @@ class OAuth {
     final data = {"grant_type": grantType};
 
     if (grantType == 'password') {
-      data.addAll({
-        "username": username,
-        "password": password
-      });
+      data.addAll({"username": username, "password": password});
     } else if (grantType == 'refresh_token') {
       data['refresh_token'] = refreshToken;
     }
