@@ -27,8 +27,10 @@ OAuthToken token = oauth.requestToken(
     print(token.accessToken);
 });
 ```
+
 Updating access token using a refresh token:
-```
+
+```dart
 OAuthToken token = oauth.requestToken(
     grantType: 'refresh_token',
     refreshToken: '<YOUR REFRESH TOKEN>'
