@@ -61,7 +61,7 @@ Codec<String, String> stringToBase64 = utf8.fuse(base64);
 
 // OAuth
 class OAuth {
-  Dio dio = Dio();
+  Dio dio;
   String tokenUrl;
   String clientId;
   String clientSecret;
@@ -75,7 +75,8 @@ class OAuth {
       this.clientSecret,
       this.extractor,
       this.dio,
-      this.storage}) {
+      this.storage,
+      this.validator}) {
     dio = dio ?? Dio();
     storage = storage ?? OAuthMemoryStorage();
     extractor = extractor ??
