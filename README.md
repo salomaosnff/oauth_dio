@@ -59,7 +59,7 @@ class OAuthSecureStorage extends OAuthStorage {
   Future<OAuthToken> fetch() async {
     return OAuthToken(
         accessToken: await storage.read(key: accessTokenKey),
-        accessToken: await storage.read(key: refreshTokenKey);
+        refreshToken: await storage.read(key: refreshTokenKey);
     )
   }
 
