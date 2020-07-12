@@ -109,7 +109,7 @@ class TicketGrant extends OAuthGrantType {
   })
 
   @override
-  RequestOptions handle (Request Options request) {
+  RequestOptions handle (RequestOptions request) {
     request.data = "grant_type=ticket&access_token=$accessToken";
     return request;
   }
