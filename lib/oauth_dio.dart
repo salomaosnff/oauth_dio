@@ -23,6 +23,40 @@ class BearerInterceptor extends Interceptor {
   }
 }
 
+// OAuth Grant Type
+abstract class OAuthGrantType {
+  RequestOptions handle(RequestOptions request);
+}
+
+// GrantType Password
+class PasswordGrant extends OAuthGrantType {
+  String username;
+  String password;
+  List<String> scope = [];
+
+  PasswordGrant({this.username, this.password, this.scope});
+
+  @override
+  RequestOptions handle(RequestOptions request) {
+    request.data =
+        "grant_type=password&username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}";
+    return request;
+  }
+}
+
+// GrantType Refresh Token
+class RefreshTokenGrant extends OAuthGrantType {
+  String refreshToken;
+
+  RefreshTokenGrant({this.refreshToken});
+
+  @override
+  RequestOptions handle(RequestOptions request) {
+    request.data = "grant_type=refresh_token&refresh_token=$refreshToken";
+    return request;
+  }
+}
+
 // OAuth Storage
 abstract class OAuthStorage {
   Future<OAuthToken> fetch();
@@ -86,48 +120,19 @@ class OAuth {
     validator = validator ?? (token) => Future.value(true);
   }
 
-  Future<OAuthToken> requestToken(
-      {String grantType,
-      String username,
-      String password,
-      String scope,
-      String refreshToken}) {
-    final data = {"grant_type": grantType};
-
-    if (grantType == 'password') {
-      data.addAll({"username": username, "password": password});
-    } else if (grantType == 'refresh_token') {
-      data['refresh_token'] = refreshToken;
-    }
-
-    if (scope != null && scope.isNotEmpty) {
-      data['scope'] = scope;
-    }
-
-    final encodedData = data.entries
-        .toList()
-        .map((entry) => [
-              Uri.encodeComponent(entry.key),
-              Uri.encodeComponent(entry.value)
-            ].join('='))
-        .join('&');
+  Future<OAuthToken> requestToken(OAuthGrantType grantType) {
+    final request = RequestOptions(
+        method: 'POST',
+        contentType: 'application/x-www-form-urlencoded',
+        headers: {
+          "Authorization":
+              "Basic ${stringToBase64.encode('$clientId:$clientSecret')}"
+        });
 
     return dio
-        .post(tokenUrl,
-            data: encodedData,
-            options: Options(
-                contentType: 'application/x-www-form-urlencoded',
-                headers: {
-                  "Authorization":
-                      "Basic ${stringToBase64.encode('$clientId:$clientSecret')}"
-                }))
+        .request(tokenUrl, data: request.data, options: request)
         .then((res) => extractor(res))
-        .then((token) => storage.save(token))
-        .catchError((err) {
-      print(err.response.data);
-      print(err.request.headers);
-      throw err;
-    });
+        .then((token) => storage.save(token));
   }
 
   Future<OAuthToken> fetchOrRefreshAccessToken() async {
