@@ -124,6 +124,7 @@ class OAuth {
     final request = grantType.handle(
       RequestOptions(
         method: 'POST',
+        contentType: 'application/x-www-form-urlencoded',
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
           "Authorization":
