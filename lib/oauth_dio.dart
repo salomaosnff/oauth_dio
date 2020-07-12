@@ -150,7 +150,6 @@ class OAuth {
   Future<OAuthToken> refreshAccessToken() async {
     OAuthToken token = await storage.fetch();
 
-    return this.requestToken(
-        grantType: 'refresh_token', refreshToken: token.refreshToken);
+    return this.requestToken(RefreshTokenGrant(refreshToken: token.refreshToken));
   }
 }
