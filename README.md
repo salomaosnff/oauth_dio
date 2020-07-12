@@ -20,9 +20,10 @@ Obtaining an access token using username and password:
 
 ```dart
 OAuthToken token = oauth.requestToken(
-    grantType: 'password',
+  PasswordGrant(
     username: '<YOUR USERNAME>',
     password: '<YOUR PASSWORD>'
+  )
 ).then((token) {
     print(token.accessToken);
 });
@@ -32,8 +33,9 @@ Updating access token using a refresh token:
 
 ```dart
 OAuthToken token = oauth.requestToken(
-    grantType: 'refresh_token',
+  RefreshTokenGrant(
     refreshToken: '<YOUR REFRESH TOKEN>'
+  )
 ).then((token) {
     print(token.accessToken);
 });
