@@ -121,13 +121,15 @@ class OAuth {
   }
 
   Future<OAuthToken> requestToken(OAuthGrantType grantType) {
-    final request = RequestOptions(
+    final request = grantType.handle(
+      RequestOptions(
         method: 'POST',
-        contentType: 'application/x-www-form-urlencoded',
         headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
           "Authorization":
               "Basic ${stringToBase64.encode('$clientId:$clientSecret')}"
-        });
+        })
+    );
 
     return dio
         .request(tokenUrl, data: request.data, options: request)
