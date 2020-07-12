@@ -94,5 +94,35 @@ authenticadedDio.get('/my/protected/resource').then((response) {
 })
 ```
 
+## Custom grant types
+
+Use the abstract class OAuthGrantType to implement a custom grant type.
+
+```dart
+import 'package:oauth_dio/oauth_dio.dart';
+
+class TicketGrant extends OAuthGrantType {
+  String accessToken;
+
+  TicketGrant({
+    this.accessToken
+  })
+
+  @override
+  RequestOptions handle (Request Options request) {
+    request.data = "grant_type=ticket&access_token=$accessToken";
+    return request;
+  }
+}
+
+// Request token using ticket grant
+oauth.requestToken(
+  TicketGrant(
+    accessToken: 'foobar'
+  )
+)
+
+```
+
 ## Feedback
 Please feel free to [give me any feedback](https://github.com/salomaosnff/oauth_dio/issues) helping support this package!

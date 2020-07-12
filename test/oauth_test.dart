@@ -7,10 +7,8 @@ void main() {
   String lastToken;
 
   test('Request AccessToken using password grantType', () async {
-    OAuthToken token = await oauth.requestToken(
-        grantType: 'password',
-        username: 'root@b2bnow.com.br',
-        password: 'b2bnow2019');
+    OAuthToken token = await oauth
+        .requestToken(PasswordGrant(username: 'foo', password: 'bar'));
 
     expect(token.accessToken, isA<String>());
 
