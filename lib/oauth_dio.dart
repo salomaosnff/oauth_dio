@@ -7,12 +7,13 @@ import 'package:dio/dio.dart';
 typedef OAuthToken OAuthTokenExtractor(Response response);
 typedef Future<bool> OAuthTokenValidator(OAuthToken token);
 
-// Dio Interceptor for Bearer AccessToken
+/// Interceptor to send the bearer access token and update the access token when needed
 class BearerInterceptor extends Interceptor {
   OAuth oauth;
 
   BearerInterceptor(this.oauth);
 
+  /// Add Bearer token to Authorization Header
   @override
   Future onRequest(RequestOptions options) async {
     final token = await oauth.fetchOrRefreshAccessToken();
@@ -23,12 +24,12 @@ class BearerInterceptor extends Interceptor {
   }
 }
 
-// OAuth Grant Type
+/// Use to implement a custom grantType
 abstract class OAuthGrantType {
   RequestOptions handle(RequestOptions request);
 }
 
-// GrantType Password
+/// Obtain an access token using a username and password
 class PasswordGrant extends OAuthGrantType {
   String username;
   String password;
@@ -36,6 +37,7 @@ class PasswordGrant extends OAuthGrantType {
 
   PasswordGrant({this.username, this.password, this.scope});
 
+  /// Prepare Request
   @override
   RequestOptions handle(RequestOptions request) {
     request.data =
@@ -44,12 +46,13 @@ class PasswordGrant extends OAuthGrantType {
   }
 }
 
-// GrantType Refresh Token
+/// Obtain an access token using an refresh token
 class RefreshTokenGrant extends OAuthGrantType {
   String refreshToken;
 
   RefreshTokenGrant({this.refreshToken});
 
+  /// Prepare Request
   @override
   RequestOptions handle(RequestOptions request) {
     request.data = "grant_type=refresh_token&refresh_token=$refreshToken";
@@ -57,33 +60,42 @@ class RefreshTokenGrant extends OAuthGrantType {
   }
 }
 
-// OAuth Storage
+/// Use to implement custom token storage
 abstract class OAuthStorage {
+  /// Read token
   Future<OAuthToken> fetch();
+  
+  /// Save Token
   Future<OAuthToken> save(OAuthToken token);
+  
+  /// Clear token
   Future<void> clear();
 }
 
-// Memory Storage
+/// Save Token in Memory
 class OAuthMemoryStorage extends OAuthStorage {
   OAuthToken _token;
 
+  /// Read
   @override
   Future<OAuthToken> fetch() async {
     return _token;
   }
 
+
+  /// Save
   @override
   Future<OAuthToken> save(OAuthToken token) async {
     return _token = token;
   }
 
+  /// Clear
   Future<void> clear() async {
     _token = null;
   }
 }
 
-// OAuth Token
+/// Token
 class OAuthToken {
   String accessToken;
   String refreshToken;
@@ -91,9 +103,10 @@ class OAuthToken {
   OAuthToken({this.accessToken, this.refreshToken});
 }
 
+/// Encode String To Base64
 Codec<String, String> stringToBase64 = utf8.fuse(base64);
 
-// OAuth
+/// OAuth Client
 class OAuth {
   Dio dio;
   String tokenUrl;
@@ -120,17 +133,16 @@ class OAuth {
     validator = validator ?? (token) => Future.value(true);
   }
 
+  /// Request a new Access Token using a strategy
   Future<OAuthToken> requestToken(OAuthGrantType grantType) {
-    final request = grantType.handle(
-      RequestOptions(
+    final request = grantType.handle(RequestOptions(
         method: 'POST',
         contentType: 'application/x-www-form-urlencoded',
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
           "Authorization":
               "Basic ${stringToBase64.encode('$clientId:$clientSecret')}"
-        })
-    );
+        }));
 
     return dio
         .request(tokenUrl, data: request.data, options: request)
@@ -138,6 +150,7 @@ class OAuth {
         .then((token) => storage.save(token));
   }
 
+  /// return current access token or refresh
   Future<OAuthToken> fetchOrRefreshAccessToken() async {
     OAuthToken token = await storage.fetch();
 
@@ -150,9 +163,11 @@ class OAuth {
     return this.refreshAccessToken();
   }
 
+  /// Refresh Access Token
   Future<OAuthToken> refreshAccessToken() async {
     OAuthToken token = await storage.fetch();
 
-    return this.requestToken(RefreshTokenGrant(refreshToken: token.refreshToken));
+    return this
+        .requestToken(RefreshTokenGrant(refreshToken: token.refreshToken));
   }
 }
