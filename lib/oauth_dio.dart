@@ -64,10 +64,10 @@ class RefreshTokenGrant extends OAuthGrantType {
 abstract class OAuthStorage {
   /// Read token
   Future<OAuthToken> fetch();
-  
+
   /// Save Token
   Future<OAuthToken> save(OAuthToken token);
-  
+
   /// Clear token
   Future<void> clear();
 }
@@ -81,7 +81,6 @@ class OAuthMemoryStorage extends OAuthStorage {
   Future<OAuthToken> fetch() async {
     return _token;
   }
-
 
   /// Save
   @override
