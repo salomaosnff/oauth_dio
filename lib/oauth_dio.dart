@@ -18,7 +18,7 @@ class BearerInterceptor extends Interceptor {
   Future onRequest(RequestOptions options) async {
     final token = await oauth.fetchOrRefreshAccessToken();
     if (token != null) {
-      options.headers.addAll({"Authorization": "Bearer $token"});
+      options.headers.addAll({"Authorization": "Bearer ${token.accessToken}"});
     }
     return options;
   }
