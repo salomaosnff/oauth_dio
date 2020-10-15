@@ -41,7 +41,7 @@ class PasswordGrant extends OAuthGrantType {
   @override
   RequestOptions handle(RequestOptions request) {
     request.data =
-        "grant_type=password&username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}";
+        "grant_type=password&username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}&scope=${this.scope.join(' ')}";
     return request;
   }
 }
