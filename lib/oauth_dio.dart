@@ -132,6 +132,10 @@ class OAuth {
     validator = validator ?? (token) => Future.value(true);
   }
 
+  Future<OAuthToken> requestTokenAndSave(OAuthGrantType grantType) async {
+    return requestToken(grantType).then((token) => storage.save(token));
+  }
+
   /// Request a new Access Token using a strategy
   Future<OAuthToken> requestToken(OAuthGrantType grantType) {
     final request = grantType.handle(RequestOptions(
@@ -145,8 +149,7 @@ class OAuth {
 
     return dio
         .request(tokenUrl, data: request.data, options: request)
-        .then((res) => extractor(res))
-        .then((token) => storage.save(token));
+        .then((res) => extractor(res));
   }
 
   /// return current access token or refresh
@@ -166,7 +169,7 @@ class OAuth {
   Future<OAuthToken> refreshAccessToken() async {
     OAuthToken token = await storage.fetch();
 
-    return this
-        .requestToken(RefreshTokenGrant(refreshToken: token.refreshToken));
+    return this.requestTokenAndSave(
+        RefreshTokenGrant(refreshToken: token.refreshToken));
   }
 }
