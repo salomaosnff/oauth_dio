@@ -142,7 +142,6 @@ class OAuth {
         method: 'POST',
         contentType: 'application/x-www-form-urlencoded',
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
           "Authorization":
               "Basic ${stringToBase64.encode('$clientId:$clientSecret')}"
         }));
