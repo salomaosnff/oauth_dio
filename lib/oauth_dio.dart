@@ -106,12 +106,12 @@ class OAuthToken {
   OAuthToken.fromMap(Map<String, dynamic> map)
       : accessToken = map['access_token'],
         refreshToken = map['refresh_token'],
-        expiration = DateTime.fromMillisecondsSinceEpoch(map['expiration']);
+        expiration = DateTime.fromMillisecondsSinceEpoch(map['expires_in']);
 
   Map<String, dynamic> toMap() => {
         'access_token': accessToken,
         'refresh_token': refreshToken,
-        'expiration': expiration.millisecondsSinceEpoch,
+        'expires_in': expiration.millisecondsSinceEpoch,
       };
 }
 
