@@ -13,3 +13,7 @@
 ## [0.2.3] - 2019-08-18
 
 - Added requestTokenAndSave method
+
+# [0.2.4] - 2021-03-10
+
+- Set default validation by token expiration.

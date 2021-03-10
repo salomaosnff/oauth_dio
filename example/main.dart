@@ -8,5 +8,6 @@ void main() {
       .then((token) {
     print('AccessToken: ${token.accessToken}');
     print('RefreshToken: ${token.refreshToken}');
+    print('Expiration: ${token.expiration}');
   });
 }

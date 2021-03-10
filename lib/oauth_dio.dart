@@ -98,8 +98,12 @@ class OAuthMemoryStorage extends OAuthStorage {
 class OAuthToken {
   String accessToken;
   String refreshToken;
+  DateTime expiration;
 
-  OAuthToken({this.accessToken, this.refreshToken});
+  bool get isExpired =>
+      expiration != null && DateTime.now().isAfter(expiration);
+
+  OAuthToken({this.accessToken, this.refreshToken, this.expiration});
 }
 
 /// Encode String To Base64
@@ -128,8 +132,10 @@ class OAuth {
     extractor = extractor ??
         (res) => OAuthToken(
             accessToken: res.data['access_token'],
-            refreshToken: res.data['refresh_token']);
-    validator = validator ?? (token) => Future.value(true);
+            refreshToken: res.data['refresh_token'],
+            expiration:
+                DateTime.fromMillisecondsSinceEpoch(res.data['expiration']));
+    validator = validator ?? (token) => Future.value(!token.isExpired);
   }
 
   Future<OAuthToken> requestTokenAndSave(OAuthGrantType grantType) async {
