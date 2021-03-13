@@ -158,7 +158,13 @@ class OAuth {
         }));
 
     return dio
-        .request(tokenUrl, data: request.data, options: request)
+        .request(tokenUrl,
+            data: request.data,
+            options: Options(
+              contentType: request.contentType,
+              headers: request.headers,
+              method: request.method,
+            ))
         .then((res) => extractor(res));
   }
 
