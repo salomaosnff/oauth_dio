@@ -15,12 +15,15 @@ class BearerInterceptor extends Interceptor {
 
   /// Add Bearer token to Authorization Header
   @override
-  Future onRequest(RequestOptions options) async {
+  Future onRequest(
+      RequestOptions options, RequestInterceptorHandler handle) async {
     final token = await oauth.fetchOrRefreshAccessToken();
+
     if (token != null) {
       options.headers.addAll({"Authorization": "Bearer ${token.accessToken}"});
     }
-    return options;
+
+    return handle.next(options);
   }
 }
 
@@ -31,24 +34,30 @@ abstract class OAuthGrantType {
 
 /// Obtain an access token using a username and password
 class PasswordGrant extends OAuthGrantType {
-  String username;
-  String password;
-  List<String> scope = [];
+  final String username;
+  final String password;
+  final List<String> scope;
 
-  PasswordGrant({this.username, this.password, this.scope});
+  PasswordGrant(
+      {this.username = '', this.password = '', this.scope = const []});
 
   /// Prepare Request
   @override
   RequestOptions handle(RequestOptions request) {
-    request.data =
-        "grant_type=password&username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}&scope=${this.scope.join(' ')}";
+    request.data = {
+      "grant_type": "password",
+      "username": username,
+      "password": password,
+      "scope": scope.join(' ')
+    };
+
     return request;
   }
 }
 
 /// Obtain an access token using an refresh token
 class RefreshTokenGrant extends OAuthGrantType {
-  String refreshToken;
+  String? refreshToken;
 
   RefreshTokenGrant({this.refreshToken});
 
@@ -63,7 +72,7 @@ class RefreshTokenGrant extends OAuthGrantType {
 /// Use to implement custom token storage
 abstract class OAuthStorage {
   /// Read token
-  Future<OAuthToken> fetch();
+  Future<OAuthToken?> fetch();
 
   /// Save Token
   Future<OAuthToken> save(OAuthToken token);
@@ -74,11 +83,11 @@ abstract class OAuthStorage {
 
 /// Save Token in Memory
 class OAuthMemoryStorage extends OAuthStorage {
-  OAuthToken _token;
+  OAuthToken? _token;
 
   /// Read
   @override
-  Future<OAuthToken> fetch() async {
+  Future<OAuthToken?> fetch() async {
     return _token;
   }
 
@@ -96,8 +105,8 @@ class OAuthMemoryStorage extends OAuthStorage {
 
 /// Token
 class OAuthToken {
-  final String accessToken;
-  final String refreshToken;
+  final String? accessToken;
+  final String? refreshToken;
   final DateTime expiration;
 
   bool get isExpired =>
@@ -106,7 +115,8 @@ class OAuthToken {
   OAuthToken.fromMap(Map<String, dynamic> map)
       : accessToken = map['access_token'],
         refreshToken = map['refresh_token'],
-        expiration = DateTime.now().add(Duration(seconds: map['expires_in']));
+        expiration = DateTime.now()
+            .add(Duration(seconds: map['expires_in'] ?? map['expires']));
 
   Map<String, dynamic> toMap() => {
         'access_token': accessToken,
@@ -120,13 +130,13 @@ Codec<String, String> stringToBase64 = utf8.fuse(base64);
 
 /// OAuth Client
 class OAuth {
-  Dio dio;
-  String tokenUrl;
-  String clientId;
-  String clientSecret;
-  OAuthStorage storage;
-  OAuthTokenExtractor extractor;
-  OAuthTokenValidator validator;
+  Dio? dio;
+  String? tokenUrl;
+  String? clientId;
+  String? clientSecret;
+  OAuthStorage? storage;
+  OAuthTokenExtractor? extractor;
+  OAuthTokenValidator? validator;
 
   OAuth(
       {this.tokenUrl,
@@ -143,49 +153,51 @@ class OAuth {
   }
 
   Future<OAuthToken> requestTokenAndSave(OAuthGrantType grantType) async {
-    return requestToken(grantType).then((token) => storage.save(token));
+    return requestToken(grantType).then((token) => storage!.save(token));
   }
 
   /// Request a new Access Token using a strategy
   Future<OAuthToken> requestToken(OAuthGrantType grantType) {
     final request = grantType.handle(RequestOptions(
         method: 'POST',
+        path: '/',
         contentType: 'application/x-www-form-urlencoded',
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
           "Authorization":
               "Basic ${stringToBase64.encode('$clientId:$clientSecret')}"
         }));
 
-    return dio
-        .request(tokenUrl,
+    return dio!
+        .request(tokenUrl!,
             data: request.data,
             options: Options(
               contentType: request.contentType,
               headers: request.headers,
               method: request.method,
             ))
-        .then((res) => extractor(res));
+        .then((res) => extractor!(res));
   }
 
   /// return current access token or refresh
-  Future<OAuthToken> fetchOrRefreshAccessToken() async {
-    OAuthToken token = await storage.fetch();
+  Future<OAuthToken?> fetchOrRefreshAccessToken() async {
+    OAuthToken? token = await storage!.fetch();
 
     if (token == null) {
       return null;
     }
 
-    if (await this.validator(token)) return token;
+    if (await this.validator!(token)) return token;
 
     return this.refreshAccessToken();
   }
 
   /// Refresh Access Token
   Future<OAuthToken> refreshAccessToken() async {
-    OAuthToken token = await storage.fetch();
+    OAuthToken? token = await storage?.fetch();
+
+    assert(token?.refreshToken != null);
 
     return this.requestTokenAndSave(
-        RefreshTokenGrant(refreshToken: token.refreshToken));
+        RefreshTokenGrant(refreshToken: token?.refreshToken));
   }
 }
