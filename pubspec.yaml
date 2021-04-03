@@ -1,13 +1,13 @@
 name: oauth_dio
 description: A customizable oauth client with token storage and interceptors for dio
-version: 0.2.3
+version: 0.2.4
 homepage: https://github.com/salomaosnff/oauth_dio
 
 environment:
   sdk: ">=2.1.0 <3.0.0"
 
 dependencies:
-  dio: ^3.0.9
+  dio: ^4.0.0-beta7
   flutter:
     sdk: flutter
 

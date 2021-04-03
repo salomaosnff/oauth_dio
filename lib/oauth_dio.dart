@@ -96,10 +96,23 @@ class OAuthMemoryStorage extends OAuthStorage {
 
 /// Token
 class OAuthToken {
-  String accessToken;
-  String refreshToken;
+  final String accessToken;
+  final String refreshToken;
+  final DateTime expiration;
 
-  OAuthToken({this.accessToken, this.refreshToken});
+  bool get isExpired =>
+      expiration != null && DateTime.now().isAfter(expiration);
+
+  OAuthToken.fromMap(Map<String, dynamic> map)
+      : accessToken = map['access_token'],
+        refreshToken = map['refresh_token'],
+        expiration = DateTime.now().add(Duration(seconds: map['expires_in']));
+
+  Map<String, dynamic> toMap() => {
+        'access_token': accessToken,
+        'refresh_token': refreshToken,
+        'expires_in': expiration.millisecondsSinceEpoch,
+      };
 }
 
 /// Encode String To Base64
@@ -125,11 +138,8 @@ class OAuth {
       this.validator}) {
     dio = dio ?? Dio();
     storage = storage ?? OAuthMemoryStorage();
-    extractor = extractor ??
-        (res) => OAuthToken(
-            accessToken: res.data['access_token'],
-            refreshToken: res.data['refresh_token']);
-    validator = validator ?? (token) => Future.value(true);
+    extractor = extractor ?? (res) => OAuthToken.fromMap(res.data);
+    validator = validator ?? (token) => Future.value(!token.isExpired);
   }
 
   Future<OAuthToken> requestTokenAndSave(OAuthGrantType grantType) async {
@@ -148,7 +158,13 @@ class OAuth {
         }));
 
     return dio
-        .request(tokenUrl, data: request.data, options: request)
+        .request(tokenUrl,
+            data: request.data,
+            options: Options(
+              contentType: request.contentType,
+              headers: request.headers,
+              method: request.method,
+            ))
         .then((res) => extractor(res));
   }
 
