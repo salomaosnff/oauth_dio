@@ -57,9 +57,9 @@ class PasswordGrant extends OAuthGrantType {
 
 /// Obtain an access token using an refresh token
 class RefreshTokenGrant extends OAuthGrantType {
-  String? refreshToken;
+  String refreshToken;
 
-  RefreshTokenGrant({this.refreshToken});
+  RefreshTokenGrant({required this.refreshToken});
 
   /// Prepare Request
   @override
@@ -109,8 +109,7 @@ class OAuthToken {
   final String? refreshToken;
   final DateTime expiration;
 
-  bool get isExpired =>
-      expiration != null && DateTime.now().isAfter(expiration);
+  bool get isExpired => DateTime.now().isAfter(expiration);
 
   OAuthToken.fromMap(Map<String, dynamic> map)
       : accessToken = map['access_token'],
@@ -130,18 +129,18 @@ Codec<String, String> stringToBase64 = utf8.fuse(base64);
 
 /// OAuth Client
 class OAuth {
+  String tokenUrl;
+  String clientId;
+  String clientSecret;
   Dio? dio;
-  String? tokenUrl;
-  String? clientId;
-  String? clientSecret;
   OAuthStorage? storage;
   OAuthTokenExtractor? extractor;
   OAuthTokenValidator? validator;
 
   OAuth(
-      {this.tokenUrl,
-      this.clientId,
-      this.clientSecret,
+      {required this.tokenUrl,
+      required this.clientId,
+      required this.clientSecret,
       this.extractor,
       this.dio,
       this.storage,
@@ -168,7 +167,7 @@ class OAuth {
         }));
 
     return dio!
-        .request(tokenUrl!,
+        .request(tokenUrl,
             data: request.data,
             options: Options(
               contentType: request.contentType,
@@ -194,10 +193,9 @@ class OAuth {
   /// Refresh Access Token
   Future<OAuthToken> refreshAccessToken() async {
     OAuthToken? token = await storage?.fetch();
+    String refreshToken = token?.refreshToken ?? '';
 
-    assert(token?.refreshToken != null);
-
-    return this.requestTokenAndSave(
-        RefreshTokenGrant(refreshToken: token?.refreshToken));
+    return this
+        .requestTokenAndSave(RefreshTokenGrant(refreshToken: refreshToken));
   }
 }
