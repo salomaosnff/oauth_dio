@@ -110,18 +110,22 @@ class OAuthToken {
   final DateTime expiration;
 
   bool get isExpired => DateTime.now().isAfter(expiration);
+  
+  OAuthToken({ this.accessToken, this.refreshToken, this.expiration });
 
-  OAuthToken.fromMap(Map<String, dynamic> map)
-      : accessToken = map['access_token'],
-        refreshToken = map['refresh_token'],
-        expiration = DateTime.now()
-            .add(Duration(seconds: map['expires_in'] ?? map['expires']));
+  OAuthToken.fromMap(Map<String, dynamic> map) {
+    return OAuthToken(
+      accessToken: map['access_token'] ?? map['accessToken'],
+      refreshToken: map['refresh_token'] ?? map['refreshToken'],
+      expiration: DateTime.now().add(Duration(seconds: map['expires'] ?? map['expires_in']))
+    );
+  }
 
   Map<String, dynamic> toMap() => {
-        'access_token': accessToken,
-        'refresh_token': refreshToken,
-        'expires_in': expiration.millisecondsSinceEpoch,
-      };
+      'access_token': accessToken,
+      'refresh_token': refreshToken,
+      'expires_in': expiration.millisecondsSinceEpoch,
+    };
 }
 
 /// Encode String To Base64
