@@ -11,8 +11,8 @@ void main() {
   String? lastToken;
 
   test('Request AccessToken using password grantType', () async {
-    OAuthToken token = await oauth.requestTokenAndSave(PasswordGrant(
-        username: 'salomaosnff', password: '01061999', scope: ['user']));
+    OAuthToken token = await oauth.requestTokenAndSave(
+        PasswordGrant(username: 'neto', password: '01061999', scope: ['user']));
 
     expect(token.accessToken, isA<String>());
     expect(token.refreshToken, isA<String>());
@@ -29,8 +29,8 @@ void main() {
   });
 
   test('Clear tokens from storage', () async {
-    expect(await oauth.storage!.fetch(), isNot(equals(null)));
-    await oauth.storage!.clear();
-    expect(await oauth.storage!.fetch(), equals(null));
+    expect(await oauth.storage.fetch(), isNot(equals(null)));
+    await oauth.storage.clear();
+    expect(await oauth.storage.fetch(), equals(null));
   });
 }
