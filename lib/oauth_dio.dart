@@ -105,14 +105,14 @@ class OAuthMemoryStorage extends OAuthStorage {
 
 /// Token
 class OAuthToken {
-  OAuthToken({this.accessToken = '', this.refreshToken = '', this.expiration});
+  OAuthToken({this.accessToken, this.refreshToken, this.expiration});
 
-  final String accessToken;
-  final String refreshToken;
+  final String? accessToken;
+  final String? refreshToken;
   final DateTime? expiration;
 
   bool get isExpired =>
-      expiration == null ? false : DateTime.now().isAfter(expiration!);
+      expiration != null && DateTime.now().isAfter(expiration!);
 
   factory OAuthToken.fromMap(Map<String, dynamic> map) {
     return OAuthToken(
