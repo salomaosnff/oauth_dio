@@ -1,6 +1,6 @@
 name: oauth_dio
 description: A customizable oauth client with token storage and interceptors for dio
-version: 0.2.4-beta1
+version: 0.2.4
 homepage: https://github.com/salomaosnff/oauth_dio
 
 environment:
