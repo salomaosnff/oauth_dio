@@ -7,6 +7,16 @@ import 'package:dio/dio.dart';
 typedef OAuthToken OAuthTokenExtractor(Response response);
 typedef Future<bool> OAuthTokenValidator(OAuthToken token);
 
+class OAuthException extends Error {
+  final String code;
+  final String message;
+
+  OAuthException(this.code, this.message) : super();
+
+  @override
+  String toString() => 'OAuthException: [$code] $message';
+}
+
 /// Interceptor to send the bearer access token and update the access token when needed
 class BearerInterceptor extends Interceptor {
   OAuth oauth;
@@ -17,7 +27,10 @@ class BearerInterceptor extends Interceptor {
   @override
   Future onRequest(
       RequestOptions options, RequestInterceptorHandler handle) async {
-    final token = await oauth.fetchOrRefreshAccessToken();
+    final token = await oauth.fetchOrRefreshAccessToken().catchError((err) {
+      print(err);
+      return null;
+    });
 
     if (token != null) {
       options.headers.addAll({"Authorization": "Bearer ${token.accessToken}"});
@@ -170,14 +183,17 @@ class OAuth {
 
   /// Request a new Access Token using a strategy
   Future<OAuthToken> requestToken(OAuthGrantType grantType) {
-    final request = grantType.handle(RequestOptions(
+    final request = grantType.handle(
+      RequestOptions(
         method: 'POST',
         path: '/',
         contentType: 'application/x-www-form-urlencoded',
         headers: {
           "Authorization":
               "Basic ${stringToBase64.encode('$clientId:$clientSecret')}"
-        }));
+        },
+      ),
+    );
 
     return this
         .dio
@@ -195,11 +211,11 @@ class OAuth {
   Future<OAuthToken?> fetchOrRefreshAccessToken() async {
     OAuthToken? token = await this.storage.fetch();
 
-    if (token == null) {
-      return null;
+    if (token?.accessToken == null) {
+      throw OAuthException('missing_access_token', 'Missing access token!');
     }
 
-    if (await this.validator(token)) return token;
+    if (await this.validator(token!)) return token;
 
     return this.refreshAccessToken();
   }
@@ -207,9 +223,12 @@ class OAuth {
   /// Refresh Access Token
   Future<OAuthToken> refreshAccessToken() async {
     OAuthToken? token = await this.storage.fetch();
-    String refreshToken = token?.refreshToken ?? '';
 
-    return this
-        .requestTokenAndSave(RefreshTokenGrant(refreshToken: refreshToken));
+    if (token?.refreshToken == null) {
+      throw OAuthException('missing_refresh_token', 'Missing refresh token!');
+    }
+
+    return this.requestTokenAndSave(
+        RefreshTokenGrant(refreshToken: token!.refreshToken!));
   }
 }
