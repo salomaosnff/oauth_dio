@@ -20,15 +20,18 @@ class OAuthException extends Error {
 /// Interceptor to send the bearer access token and update the access token when needed
 class BearerInterceptor extends Interceptor {
   OAuth oauth;
+  Future<void> Function(Exception error)? onInvalid;
 
-  BearerInterceptor(this.oauth);
+  BearerInterceptor(this.oauth, {this.onInvalid});
 
   /// Add Bearer token to Authorization Header
   @override
   Future onRequest(
       RequestOptions options, RequestInterceptorHandler handle) async {
     final token = await oauth.fetchOrRefreshAccessToken().catchError((err) {
-      print(err);
+      if (onInvalid != null) {
+        onInvalid!(err);
+      }
       return null;
     });
 
