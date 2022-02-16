@@ -7,7 +7,7 @@ import 'package:dio/dio.dart';
 typedef OAuthToken OAuthTokenExtractor(Response response);
 typedef Future<bool> OAuthTokenValidator(OAuthToken token);
 
-class OAuthException extends Error {
+class OAuthException implements Exception {
   final String code;
   final String message;
 
@@ -26,8 +26,7 @@ class BearerInterceptor extends Interceptor {
 
   /// Add Bearer token to Authorization Header
   @override
-  Future onRequest(
-      RequestOptions options, RequestInterceptorHandler handle) async {
+  Future onRequest(RequestOptions options, RequestInterceptorHandler handle) async {
     final token = await oauth.fetchOrRefreshAccessToken().catchError((err) {
       if (onInvalid != null) {
         onInvalid!(err);
@@ -54,18 +53,12 @@ class PasswordGrant extends OAuthGrantType {
   final String password;
   final List<String> scope;
 
-  PasswordGrant(
-      {this.username = '', this.password = '', this.scope = const []});
+  PasswordGrant({this.username = '', this.password = '', this.scope = const []});
 
   /// Prepare Request
   @override
   RequestOptions handle(RequestOptions request) {
-    request.data = {
-      "grant_type": "password",
-      "username": username,
-      "password": password,
-      "scope": scope.join(' ')
-    };
+    request.data = {"grant_type": "password", "username": username, "password": password, "scope": scope.join(' ')};
 
     return request;
   }
@@ -127,8 +120,7 @@ class OAuthToken {
   final String? refreshToken;
   final DateTime? expiration;
 
-  bool get isExpired =>
-      expiration != null && DateTime.now().isAfter(expiration!);
+  bool get isExpired => expiration != null && DateTime.now().isAfter(expiration!);
 
   factory OAuthToken.fromMap(Map<String, dynamic> map) {
     return OAuthToken(
@@ -177,8 +169,7 @@ class OAuth {
   })  : this.dio = dio ?? Dio(),
         this.storage = storage ?? OAuthMemoryStorage(),
         this.extractor = extractor ?? ((res) => OAuthToken.fromMap(res.data)),
-        this.validator =
-            validator ?? ((token) => Future.value(!token.isExpired));
+        this.validator = validator ?? ((token) => Future.value(!token.isExpired));
 
   Future<OAuthToken> requestTokenAndSave(OAuthGrantType grantType) async {
     return requestToken(grantType).then((token) => storage.save(token));
@@ -191,10 +182,7 @@ class OAuth {
         method: 'POST',
         path: '/',
         contentType: 'application/x-www-form-urlencoded',
-        headers: {
-          "Authorization":
-              "Basic ${stringToBase64.encode('$clientId:$clientSecret')}"
-        },
+        headers: {"Authorization": "Basic ${stringToBase64.encode('$clientId:$clientSecret')}"},
       ),
     );
 
@@ -231,7 +219,6 @@ class OAuth {
       throw OAuthException('missing_refresh_token', 'Missing refresh token!');
     }
 
-    return this.requestTokenAndSave(
-        RefreshTokenGrant(refreshToken: token!.refreshToken!));
+    return this.requestTokenAndSave(RefreshTokenGrant(refreshToken: token!.refreshToken!));
   }
 }
