@@ -56,19 +56,24 @@ class OAuthSecureStorage extends OAuthStorage {
   final FlutterSecureStorage storage = const FlutterSecureStorage();
   final accessTokenKey = 'accessToken';
   final refreshTokenKey = 'refreshToken';
+  final tokenExpirationKey = 'tokenExpiration';
 
   @override
   Future<OAuthToken> fetch() async {
+    final expiration = await storage.read(key: tokenExpirationKey);
+
     return OAuthToken(
-      accessToken: await storage.read(key: accessTokenKey),
-      refreshToken: await storage.read(key: refreshTokenKey),
-    );
+        accessToken: await storage.read(key: accessTokenKey),
+        refreshToken: await storage.read(key: refreshTokenKey),
+        expiration: DateTime.tryParse(expiration.toString()));
   }
 
   @override
   Future<OAuthToken> save(OAuthToken token) async {
     await storage.write(key: accessTokenKey, value: token.accessToken);
     await storage.write(key: refreshTokenKey, value: token.refreshToken);
+    await storage.write(key: tokenExpirationKey, value: token.expiration.toString());
+
     return token;
   }
 
@@ -76,6 +81,7 @@ class OAuthSecureStorage extends OAuthStorage {
   Future<void> clear() async {
     await storage.delete(key: accessTokenKey);
     await storage.delete(key: refreshTokenKey);
+    await storage.delete(key: tokenExpirationKey);
   }
 }
 
