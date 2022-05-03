@@ -1,4 +1,6 @@
-## [0.0.1] - TODO: Add release date.
+# Changelog
+
+## [0.0.1] - TODO: Add release date
 
 - TODO: Describe initial release.
 
@@ -14,6 +16,10 @@
 
 - Added requestTokenAndSave method
 
-# [0.2.4-beta1] - 2021-03-10
+## [0.2.4-beta1] - 2021-03-10
 
 - Set default validation by token expiration.
+
+## Unreleased
+
+- Remove `flutter` and `flutter_test` (use `test`) unnecessary dependencies.
