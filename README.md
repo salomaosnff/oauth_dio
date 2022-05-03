@@ -19,7 +19,7 @@ final oauth = OAuth(
 Obtaining an access token using username and password:
 
 ```dart
-OAuthToken token = oauth.requestToken(
+OAuthToken token = oauth.requestTokenAndSave(
   PasswordGrant(
     username: '<YOUR USERNAME>',
     password: '<YOUR PASSWORD>'
@@ -32,7 +32,7 @@ OAuthToken token = oauth.requestToken(
 Updating access token using a refresh token:
 
 ```dart
-OAuthToken token = oauth.requestToken(
+OAuthToken token = oauth.requestTokenAndSave(
   RefreshTokenGrant(
     refreshToken: '<YOUR REFRESH TOKEN>'
   )
@@ -53,28 +53,35 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 
 class OAuthSecureStorage extends OAuthStorage {
-  final FlutterSecureStorage storage;
+  final FlutterSecureStorage storage = const FlutterSecureStorage();
   final accessTokenKey = 'accessToken';
   final refreshTokenKey = 'refreshToken';
+  final tokenExpirationKey = 'tokenExpiration';
 
   @override
   Future<OAuthToken> fetch() async {
+    final expiration = await storage.read(key: tokenExpirationKey);
+
     return OAuthToken(
         accessToken: await storage.read(key: accessTokenKey),
-        refreshToken: await storage.read(key: refreshTokenKey);
-    )
+        refreshToken: await storage.read(key: refreshTokenKey),
+        expiration: DateTime.tryParse(expiration.toString()));
   }
 
   @override
   Future<OAuthToken> save(OAuthToken token) async {
-    await storage.write(key: accessTokenKey, value: token.acessToken);
+    await storage.write(key: accessTokenKey, value: token.accessToken);
     await storage.write(key: refreshTokenKey, value: token.refreshToken);
+    await storage.write(key: tokenExpirationKey, value: token.expiration.toString());
+
     return token;
   }
 
+  @override
   Future<void> clear() async {
     await storage.delete(key: accessTokenKey);
     await storage.delete(key: refreshTokenKey);
+    await storage.delete(key: tokenExpirationKey);
   }
 }
 
@@ -85,11 +92,11 @@ final oauth = OAuth(
     storage: OAuthSecureStorage()
 );
 
-final authenticadedDio = Dio()
-authenticadedDio.interceptors.add(BearerInterceptor(oauth: oauth))
+final authenticatedDio = Dio();
+authenticatedDio.interceptors.add(BearerInterceptor(oauth));
 
 
-authenticadedDio.get('/my/protected/resource').then((response) {
+authenticatedDio.get('/my/protected/resource').then((response) {
     print(response.data);
 })
 ```
@@ -116,7 +123,7 @@ class TicketGrant extends OAuthGrantType {
 }
 
 // Request token using ticket grant
-oauth.requestToken(
+oauth.requestTokenAndSave(
   TicketGrant(
     accessToken: 'foobar'
   )
