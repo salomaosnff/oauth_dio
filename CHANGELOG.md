@@ -20,6 +20,10 @@
 
 - Set default validation by token expiration.
 
+- ## [0.2.9] - 2023-12-30
+
+- Update SDK version
+
 ## Unreleased
 
 - Remove `flutter` and `flutter_test` (use `test`) unnecessary dependencies.
